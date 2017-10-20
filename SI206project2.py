@@ -13,9 +13,7 @@
 import unittest
 import requests
 import re
-from bs4 import BeautifulSoup
-import urllib.request, urllib.parse, urllib.error
-import ssl
+from bs4 import BeautifulSoup 
 
 
 ## Part 1 -- Define your find_urls function here.
@@ -40,6 +38,7 @@ def find_urls(s):
 ## http://www.michigandaily.com/section/opinion
 
 def grab_headlines(): #note: Since I am grabbing from the acutal page, I am not passing tests on my comptuer
+    #also why peopel gotta get married and make this so freaking hard to test :(
     readFile = requests.get('http://www.michigandaily.com/section/opinion')
     soup = BeautifulSoup(readFile.content, 'html.parser')
     most_read = soup('ol')[0]  #Since the most read is the first ordered list, grabs that 
@@ -68,6 +67,7 @@ def get_umsi_data(): #note, since I am grabbing from the page, I am not passing 
     for items in range(13): #13 web pages 
         currentURL =baseURL+str(items)  # adds the actual page number to the base url
         info =requests.get(currentURL,headers={'User-Agent': 'SI_CLASS'}) #gets the actual page we want
+            #also I used the correct request call :) 
         thirsty = BeautifulSoup(info.text,'lxml') #Creates the soup of the page we got
         people = thirsty.find_all("div",re.compile("views-row")) #finds all the people we need
         for person in people:  #iterate through everyone on the page
