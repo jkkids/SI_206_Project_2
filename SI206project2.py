@@ -1,8 +1,8 @@
 ## SI 206 W17 - Project 2
 
 ## COMMENT HERE WITH:
-## Your name:
-## Anyone you worked with on this project:
+## Your name: Jacob Kirsch
+## Anyone you worked with on this project: Independant
 
 ## Below we have provided import statements, comments to separate out the 
 #parts of the project, instructions/hints/examples, and at the end, TESTS.
@@ -14,6 +14,8 @@ import unittest
 import requests
 import re
 from bs4 import BeautifulSoup
+import urllib.request, urllib.parse, urllib.error
+import ssl
 
 
 ## Part 1 -- Define your find_urls function here.
@@ -27,8 +29,8 @@ from bs4 import BeautifulSoup
 ## find_urls("the internet is awesome #worldwideweb") should return [], empty list
 
 def find_urls(s):
-    pass
-    #Your code here
+    return re.findall('http[^ ]*[.]+[\w]+[\w]+[^ ]*', s)
+    
 
 
 
@@ -37,10 +39,16 @@ def find_urls(s):
 ## Grab the headlines from the "Most Read" section of 
 ## http://www.michigandaily.com/section/opinion
 
-def grab_headlines():
-    pass
-    #Your code here
-
+def grab_headlines(): #note: Since I am grabbing from the acutal page, I am not passing tests on my comptuer
+    readFile = requests.get('http://www.michigandaily.com/section/opinion')
+    soup = BeautifulSoup(readFile.content, 'html.parser')
+    most_read = soup('ol')[0]  #Since the most read is the first ordered list, grabs that 
+    headlines = [] #creates list to hold headlines
+    mostReadContent = most_read.contents #Grabs the content of the ordered lists
+    for item in mostReadContent: # collects all the actual headlines, adds them to the headline list
+        if item.string != '\n':
+            headlines.append(item.string)
+    return headlines
 
 
 ## PART 3 (a) Define a function called get_umsi_data.  It should create a dictionary
@@ -54,16 +62,31 @@ def grab_headlines():
 ## Reminder: you'll need to use the special header for a request to the UMSI site, like so:
 ## requests.get(base_url, headers={'User-Agent': 'SI_CLASS'}) 
 
-def get_umsi_data():
-    pass
-    #Your code here
+def get_umsi_data(): #note, since I am grabbing from the page, I am not passing tests on my computer
+    baseURL = "https://www.si.umich.edu/directory?field_person_firstname_value=&field_person_lastname_value=&rid=All&page="
+    umsi_titles={} #dictionary to store everything in
+    for items in range(13): #13 web pages 
+        currentURL =baseURL+str(items)  # adds the actual page number to the base url
+        info =requests.get(currentURL,headers={'User-Agent': 'SI_CLASS'}) #gets the actual page we want
+        thirsty = BeautifulSoup(info.text,'lxml') #Creates the soup of the page we got
+        people = thirsty.find_all("div",re.compile("views-row")) #finds all the people we need
+        for person in people:  #iterate through everyone on the page
+            namefield = person.find("div",re.compile("field-name-title")) #finds the persons's name
+            name = namefield.find("h2")
+            getPersonTitle = person.find("div",re.compile("field-name-field-person-titles")) #finds the persons title
+            title = getPersonTitle.find("div",class_="field-item even")
+            if title==None: umsi_titles[name.string] = " " #If no title, replace with " "
+            else: umsi_titles[name.string] = title.string #appends title 
+    return umsi_titles
 
 ## PART 3 (b) Define a function called num_students.  
 ## INPUT: The dictionary from get_umsi_data().
 ## OUTPUT: Return number of PhD students in the data.  (Don't forget, I may change the input data)
 def num_students(data):
-    pass
-    #Your code here
+    numStudents = 0 #counter 
+    for title in data.values():  #loops through the data
+        if title=="PhD student": numStudents+=1 #increments numStudents if the person's title is PhD student
+    return numStudents #returns the final count
 
 
 
